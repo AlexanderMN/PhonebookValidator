@@ -106,4 +106,41 @@ public class PhonebookValidator {
         
         return "";
     }
+
+    public static String validateAndFixPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Убираем все кроме цифр и знака +
+        String cleaned = phone.replaceAll("[^\\d+]", "");
+        
+        // Паттерн для российских номеров
+        Pattern pattern = Pattern.compile("^(\\+7|8|7)?(\\d{10})$");
+        Matcher matcher = pattern.matcher(cleaned);
+        
+        if (matcher.find()) {
+            String number;
+            if (matcher.group(2) != null) {
+                number = matcher.group(2);
+            } else {
+                // Извлекаем 10 цифр из строки
+                String digitsOnly = cleaned.replaceAll("\\D", "");
+                if (digitsOnly.length() >= 10) {
+                    number = digitsOnly.substring(digitsOnly.length() - 10);
+                } else {
+                    return "";
+                }
+            }
+            
+            // Форматируем номер: +7 (XXX) XXX-XX-XX
+            return String.format("+7 (%s) %s-%s-%s",
+                    number.substring(0, 3),
+                    number.substring(3, 6),
+                    number.substring(6, 8),
+                    number.substring(8, 10));
+        }
+        
+        return "";
+    }
 }
