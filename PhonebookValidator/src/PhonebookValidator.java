@@ -45,4 +45,25 @@ public class PhonebookValidator {
         
         return String.join("|", name, age, phone, email);
     }
+
+    public static String validateAndFixName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Убираем лишние пробелы и проверяем, что имя и фамилия состоят из букв
+        name = name.trim().replaceAll("\\s+", " ");
+        
+        // Паттерн для проверки: имя и фамилия (только буквы, первая заглавная)
+        Pattern pattern = Pattern.compile("^[A-ZА-Я][a-zа-я]+\\s+[A-ZА-Я][a-zа-я]+$");
+        Matcher matcher = pattern.matcher(name);
+        
+        if (matcher.matches()) {
+            return name;
+        }
+        
+        // Пытаемся исправить: разделяем если написано слитно
+        String fixed = fixNameFormat(name);
+        return fixed != null ? fixed : "";
+    }
 }
