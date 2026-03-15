@@ -66,4 +66,44 @@ public class PhonebookValidator {
         String fixed = fixNameFormat(name);
         return fixed != null ? fixed : "";
     }
+
+    private static String fixNameFormat(String name) {
+        // Проверяем, может имя и фамилия написаны слитно (ИванИванов)
+        Pattern слитноPattern = Pattern.compile("^([A-ZА-Я][a-zа-я]+)([A-ZА-Я][a-zа-я]+)$");
+        Matcher m = слитноPattern.matcher(name);
+        
+        if (m.matches()) {
+            return m.group(1) + " " + m.group(2);
+        }
+        
+        // Проверяем, может есть лишние символы
+        String cleaned = name.replaceAll("[^a-zA-Zа-яА-Я\\s]", "").trim();
+        if (!cleaned.isEmpty() && cleaned.contains(" ")) {
+            return cleaned;
+        } else if (!cleaned.isEmpty()) {
+            return cleaned; // Вернем как есть, если не можем разделить
+        }
+        
+        return null;
+    }
+
+    public static String validateAndFixAge(String ageStr) {
+        if (ageStr == null || ageStr.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Убираем все кроме цифр и знака минус
+        String cleaned = ageStr.replaceAll("[^\\d-]", "");
+        
+        try {
+            int age = Integer.parseInt(cleaned);
+            if (age > 0 && age < 150) {
+                return String.valueOf(age);
+            }
+        } catch (NumberFormatException e) {
+            // Не число
+        }
+        
+        return "";
+    }
 }
