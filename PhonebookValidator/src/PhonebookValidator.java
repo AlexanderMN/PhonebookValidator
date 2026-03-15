@@ -28,4 +28,21 @@ public class PhonebookValidator {
             }
         }
     }
-    
+
+    public static String processLine(String line) {
+        // Разбиваем строку по разделителю |
+        String[] parts = line.split("\\|", -1); // -1 чтобы сохранить пустые поля
+        
+        if (parts.length < 4) {
+            // Если полей меньше 4, возвращаем строку с пустыми полями
+            return "||||";
+        }
+        
+        String name = validateAndFixName(parts[0]);
+        String age = validateAndFixAge(parts[1]);
+        String phone = validateAndFixPhone(parts[2]);
+        String email = validateAndFixEmail(parts[3]);
+        
+        return String.join("|", name, age, phone, email);
+    }
+}
