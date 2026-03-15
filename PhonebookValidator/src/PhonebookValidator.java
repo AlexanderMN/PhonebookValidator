@@ -143,4 +143,36 @@ public class PhonebookValidator {
         
         return "";
     }
+
+    public static String validateAndFixEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Убираем пробелы и приводим к нижнему регистру
+        email = email.trim().toLowerCase().replaceAll("\\s+", "");
+        
+        // Исправляем частые ошибки: @@ -> @, .. -> .
+        email = email.replaceAll("@+", "@");
+        email = email.replaceAll("\\.{2,}", ".");
+        
+        // Паттерн для валидации email
+        Pattern pattern = Pattern.compile(
+            "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+        );
+        
+        Matcher matcher = pattern.matcher(email);
+        if (matcher.matches()) {
+            return email;
+        }
+        
+        // Проверяем, может есть кириллица в домене
+        String latinized = email.replaceAll("[а-яА-Я]", "");
+        matcher = pattern.matcher(latinized);
+        if (matcher.matches()) {
+            return latinized;
+        }
+        
+        return "";
+    }
 }
