@@ -1,63 +1,51 @@
-name: Test Committed Code
+name: Build Check
 
 on: [push]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Debug - Show repository structure
-      run: |
-        echo "Current directory:"
-        pwd
-        echo -e "\nAll files:"
-        ls -la
-        echo -e "\nJava files location:"
-        find . -name "*.java" | head -10
-        
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
         
-    - name: Compile Java files
+    - name: Check if project builds
       run: |
-        echo "Finding all Java files..."
-        find . -name "*.java" > sources.txt
+        echo "🔨 Checking if project builds..."
         
-        if [ ! -s sources.txt ]; then
-          echo "❌ No Java files found in the repository!"
-          echo "Make sure your Java files are committed and pushed."
-          exit 1
+        # Look for build files
+        if [ -f "pom.xml" ]; then
+          echo "📦 Maven project detected"
+          mvn compile
+        elif [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+          echo "📦 Gradle project detected"
+          gradle compileJava
+        elif [ -f "build.xml" ]; then
+          echo "📦 Ant project detected"
+          ant compile
+        else
+          # No build tool, just try to compile all Java files
+          echo "📁 No build tool detected, compiling Java files directly"
+          JAVA_FILES=$(find . -name "*.java")
+          
+          if [ -z "$JAVA_FILES" ]; then
+            echo "❌ No Java files found"
+            exit 1
+          fi
+          
+          mkdir -p out
+          javac -d out $JAVA_FILES
         fi
-        
-        echo "✅ Found $(wc -l < sources.txt) Java files"
-        echo -e "\nCompiling..."
-        
-        mkdir -p out
-        javac -d out @sources.txt
         
         if [ $? -eq 0 ]; then
-          echo "✅ Compilation successful!"
-          echo "Compiled classes are in the 'out' directory"
+          echo "✅ Project builds successfully!"
         else
-          echo "❌ Compilation failed"
+          echo "❌ Build failed"
           exit 1
-        fi
-        
-    - name: Run tests (if any)
-      run: |
-        # Look for test files in common patterns
-        TEST_FILES=$(find . -name "*Test.java" -o -name "Test*.java" | wc -l)
-        
-        if [ "$TEST_FILES" -gt 0 ]; then
-          echo "Found $TEST_FILES test files"
-          echo "Note: This workflow only compiles, doesn't run JUnit tests"
-          echo "To run JUnit tests, you'll need to add JUnit to classpath"
-        else
-          echo "No test files found"
         fi
