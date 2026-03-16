@@ -1,0 +1,36 @@
+name: Test Committed Code
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Find and compile Java files
+      run: |
+        echo "Finding Java files..."
+        find src -name "*.java" > sources.txt
+        if [ -s sources.txt ]; then
+          mkdir -p out
+          javac -d out @sources.txt
+          echo "Compilation successful"
+        else
+          echo "No Java files found"
+          exit 1
+        fi
+        
+    - name: Run tests (if using JUnit)
+      run: |
+        if [ -f "src/test/java/**/*Test.java" ]; then
+          echo "Running tests..."
+          # Add your test execution commands here
+        fi
