@@ -16,6 +16,8 @@ public class PhonebookValidator {
         } catch (IOException e) {
             System.err.println("Ошибка при обработке файлов: " + e.getMessage());
         }
+
+        System.out.println("Работа программы завершена");
     }
     
     public static void validateAndFixPhonebook(String inputFile, String outputFile) throws IOException {
