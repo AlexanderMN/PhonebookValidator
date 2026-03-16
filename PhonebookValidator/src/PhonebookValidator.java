@@ -6,7 +6,7 @@ public class PhonebookValidator {
     
     public static void main(String[] args) {
 
-        ystem.out.println("Программа для обработки содержимого файлов");
+        System.out.println("Программа для обработки содержимого файлов");
         String inputFile = "input.txt";
         String outputFile = "output.txt";
         
