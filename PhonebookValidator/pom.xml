@@ -13,7 +13,6 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jacoco.version>0.8.12</jacoco.version>
     </properties>
 
@@ -52,37 +51,34 @@
             </plugin>
             
             <plugin>
-    <groupId>org.jacoco</groupId>
-    <artifactId>jacoco-maven-plugin</artifactId>
-    <version>0.8.12</version>
-    <executions>
-        <execution>
-            <id>prepare-agent</id>
-            <goals>
-                <goal>prepare-agent</goal>
-            </goals>
-        </execution>
-        <execution>
-            <id>report</id>
-            <phase>verify</phase>
-            <goals>
-                <goal>report</goal>
-            </goals>
-            <configuration>
-                <dataFile>${project.build.directory}/jacoco.exec</dataFile>
-                <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
-                <classDirectories>
-                    <classDirectory>${project.build.outputDirectory}</classDirectory>
-                    <classDirectory>${project.build.testOutputDirectory}</classDirectory>
-                </classDirectories>
-                <sourceDirectories>
-                    <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-                    <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
-                </sourceDirectories>
-            </configuration>
-        </execution>
-    </executions>
-</plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                            <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
+                            <!-- Include both main and test classes -->
+                            <classDirectories>
+                                <classDirectory>${project.build.outputDirectory}</classDirectory>
+                                <classDirectory>${project.build.testOutputDirectory}</classDirectory>
+                            </classDirectories>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
