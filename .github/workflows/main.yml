@@ -1,13 +1,20 @@
-name: Build Check
+name: Build and Test with Coverage
 
-on: [push]
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for Coveralls
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -15,42 +22,48 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         
-    - name: Check if project builds
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Find and run Maven tests with coverage
       run: |
-        echo "🔨 Checking if project builds..."
-
-        if [ -d "PhonebookValidator" ] && [ -f "PhonebookValidator/pom.xml" ]; then
-          echo "📁 Found project in PhonebookValidator directory"
-          cd PhonebookValidator
-        fi
+        # Find pom.xml file
+        POM_FILE=$(find . -name "pom.xml" -type f | head -n 1)
         
-        # Look for build files
-        if [ -f "pom.xml" ]; then
-          echo "📦 Maven project detected"
-          mvn compile
-        elif [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
-          echo "📦 Gradle project detected"
-          gradle compileJava
-        elif [ -f "build.xml" ]; then
-          echo "📦 Ant project detected"
-          ant compile
+        if [ -n "$POM_FILE" ]; then
+          echo "📦 Found Maven project at: $POM_FILE"
+          PROJECT_DIR=$(dirname "$POM_FILE")
+          cd "$PROJECT_DIR"
+          echo "📁 Working directory: $(pwd)"
+          echo "📋 Running: mvn clean test jacoco:report"
+          mvn clean test jacoco:report
         else
-          # No build tool, just try to compile all Java files
-          echo "📁 No build tool detected, compiling Java files directly"
-          JAVA_FILES=$(find . -name "*.java")
-          
-          if [ -z "$JAVA_FILES" ]; then
-            echo "❌ No Java files found"
-            exit 1
-          fi
-          
-          mkdir -p out
-          javac -d out $JAVA_FILES
-        fi
-        
-        if [ $? -eq 0 ]; then
-          echo "✅ Project builds successfully!"
-        else
-          echo "❌ Build failed"
+          echo "❌ No pom.xml found in repository"
           exit 1
         fi
+        
+    - name: List coverage reports
+      run: |
+        echo "📊 Coverage reports:"
+        find . -name "jacoco.xml" -o -name "jacoco.csv" -o -name "index.html" | grep -v ".git"
+        
+    - name: Upload coverage to Coveralls
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./**/target/site/jacoco/jacoco.xml
+        format: jacoco
+        base-path: ./PhonebookValidator
+        
+    - name: Upload test reports (optional)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-reports
+        path: |
+          **/target/surefire-reports/
+          **/target/site/jacoco/
