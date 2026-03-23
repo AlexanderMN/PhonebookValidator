@@ -18,6 +18,11 @@ jobs:
     - name: Check if project builds
       run: |
         echo "🔨 Checking if project builds..."
+
+        if [ -d "PhonebookValidator" ] && [ -f "PhonebookValidator/pom.xml" ]; then
+          echo "📁 Found project in PhonebookValidator directory"
+          cd PhonebookValidator
+        fi
         
         # Look for build files
         if [ -f "pom.xml" ]; then
