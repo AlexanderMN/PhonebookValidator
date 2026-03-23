@@ -24,21 +24,19 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
-    - name: Run tests with JaCoCo
+    - name: Run tests with coverage
       run: |
         cd PhonebookValidator
+        mvn clean verify
         
-        # Single command that runs tests AND generates coverage
-        mvn clean test
-        
-        # Check if report was generated
-        if [ -d "target/site/jacoco" ]; then
+        # Check report
+        if [ -f "target/site/jacoco/jacoco.xml" ]; then
           echo "✅ Coverage report generated!"
           ls -la target/site/jacoco/
         else
           echo "❌ Report not generated"
-          echo "Checking what's in target directory:"
-          find target -type f 2>/dev/null | head -30
+          echo "Finding all XML files:"
+          find target -name "*.xml" 2>/dev/null
           exit 1
         fi
     
