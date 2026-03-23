@@ -6,6 +6,13 @@ import io.cucumber.java.ru.Тогда;   // ← CORRECT
 import io.cucumber.java.ru.И;       // ← CORRECT
 import static org.junit.Assert.*;
 
+// These imports are now from main source
+import stepdefinitions.BankCard;
+import stepdefinitions.ShoppingCart;
+import stepdefinitions.Order;
+import stepdefinitions.PaymentService;
+import stepdefinitions.PaymentResult;
+
 public class PaymentStepDefinitions {
     
     private BankCard userCard;
