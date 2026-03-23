@@ -1,0 +1,7 @@
+stepdefinitions\PaymentResult.class
+stepdefinitions\PaymentStepDefinitions.class
+stepdefinitions\ShoppingCart.class
+RunPaymentTest.class
+stepdefinitions\Order.class
+stepdefinitions\BankCard.class
+stepdefinitions\PaymentService.class
