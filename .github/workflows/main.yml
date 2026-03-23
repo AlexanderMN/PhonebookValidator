@@ -1,10 +1,6 @@
-name: CI - Build, Test & Coverage
+name: Build and Test with Coverage
 
-on:
-  push:
-    branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master ]
+on: [push, pull_request]
 
 jobs:
   test:
@@ -25,46 +21,46 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('PhonebookValidator/pom.xml') }}
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-    
-    - name: Run tests with coverage
+
+    - name: Run tests with JaCoCo
       run: |
         cd PhonebookValidator
-        mvn clean test jacoco:report
-      continue-on-error: false
+        
+        # Single command that runs tests AND generates coverage
+        mvn clean test
+        
+        # Check if report was generated
+        if [ -d "target/site/jacoco" ]; then
+          echo "✅ Coverage report generated!"
+          ls -la target/site/jacoco/
+        else
+          echo "❌ Report not generated"
+          echo "Checking what's in target directory:"
+          find target -type f 2>/dev/null | head -30
+          exit 1
+        fi
+    
+    - name: Debug - Find coverage reports
+      if: always()  # Run even if tests fail
+      run: |
+        echo "=== Searching for coverage reports ==="
+        find . -name "jacoco.xml" 2>/dev/null || echo "No jacoco.xml found"
+        echo ""
+        echo "=== Searching for jacoco directories ==="
+        find . -type d -name "jacoco" 2>/dev/null || echo "No jacoco directories found"
+        echo ""
+        echo "=== Full directory structure ==="
+        ls -laR | head -100
     
     - name: Upload coverage to Coveralls
+      if: success()  # Only run if tests passed
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        file: PhonebookValidator/target/site/jacoco/jacoco.xml
+        file: |
+          ./target/site/jacoco/jacoco.xml
+          ./PhonebookValidator/target/site/jacoco/jacoco.xml
+          **/target/site/jacoco/jacoco.xml
         format: jacoco
-        flag-name: jacoco
-        parallel: true
-    
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-reports
-        path: PhonebookValidator/target/surefire-reports/
-    
-    - name: Upload coverage report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: PhonebookValidator/target/site/jacoco/
-
-  # Finalize Coveralls report
-  finish:
-    needs: test
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-    - name: Coveralls finished
-      uses: coverallsapp/github-action@v2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        parallel-finished: true
