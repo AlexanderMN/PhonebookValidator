@@ -1,0 +1,12 @@
+# Created at 2026-03-23T15:53:52.187
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+
+# Created at 2026-03-23T15:53:52.187
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by cucumber.deps.com.thoughtworks.xstream.converters.reflection.SunUnsafeReflectionProvider (file:/C:/Users/alexm/.m2/repository/info/cukes/cucumber-jvm-deps/1.0.5/cucumber-jvm-deps-1.0.5.jar)
+
+# Created at 2026-03-23T15:53:52.188
+WARNING: Please consider reporting this to the maintainers of class cucumber.deps.com.thoughtworks.xstream.converters.reflection.SunUnsafeReflectionProvider
+
+# Created at 2026-03-23T15:53:52.188
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+
