@@ -28,47 +28,19 @@ jobs:
       run: |
         cd PhonebookValidator
         
-        # First, compile everything
-        echo "=== Compiling ==="
-        mvn clean compile test-compile
+        # Single command that runs tests AND generates coverage
+        mvn clean test
         
-        echo "=== Checking compiled classes ==="
-        if [ -d "target/classes" ]; then
-          echo "✅ Main classes compiled:"
-          ls -la target/classes/
-        else
-          echo "❌ target/classes directory not found!"
-        fi
-        
-        if [ -d "target/test-classes" ]; then
-          echo "✅ Test classes compiled:"
-          ls -la target/test-classes/
-        else
-          echo "❌ target/test-classes directory not found!"
-        fi
-        
-        echo "=== Running tests ==="
-        mvn test
-        
-        echo "=== Checking JaCoCo data ==="
-        if [ -f "target/jacoco.exec" ]; then
-          echo "✅ JaCoCo execution data found:"
-          ls -la target/jacoco.exec
-        else
-          echo "❌ No JaCoCo execution data found!"
-        fi
-        
-        echo "=== Generating JaCoCo report ==="
-        mvn jacoco:report
-        
-        echo "=== Checking report ==="
+        # Check if report was generated
         if [ -d "target/site/jacoco" ]; then
-          echo "✅ Report generated:"
+          echo "✅ Coverage report generated!"
           ls -la target/site/jacoco/
         else
-          echo "❌ Report not generated!"
+          echo "❌ Report not generated"
+          echo "Checking what's in target directory:"
+          find target -type f 2>/dev/null | head -30
+          exit 1
         fi
-
     
     - name: Debug - Find coverage reports
       if: always()  # Run even if tests fail
