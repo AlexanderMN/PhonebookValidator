@@ -1,4 +1,4 @@
-name: Build and Test with Coverage
+name: CI - Build, Test & Coverage
 
 on:
   push:
@@ -7,63 +7,64 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Required for Coveralls
+        fetch-depth: 0
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        
+    
     - name: Cache Maven dependencies
       uses: actions/cache@v3
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-m2-${{ hashFiles('PhonebookValidator/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-        
-    - name: Find and run Maven tests with coverage
+    
+    - name: Run tests with coverage
       run: |
-        # Find pom.xml file
-        POM_FILE=$(find . -name "pom.xml" -type f | head -n 1)
-        
-        if [ -n "$POM_FILE" ]; then
-          echo "📦 Found Maven project at: $POM_FILE"
-          PROJECT_DIR=$(dirname "$POM_FILE")
-          cd "$PROJECT_DIR"
-          echo "📁 Working directory: $(pwd)"
-          echo "📋 Running: mvn clean test jacoco:report"
-          mvn clean test jacoco:report
-        else
-          echo "❌ No pom.xml found in repository"
-          exit 1
-        fi
-        
-    - name: List coverage reports
-      run: |
-        echo "📊 Coverage reports:"
-        find . -name "jacoco.xml" -o -name "jacoco.csv" -o -name "index.html" | grep -v ".git"
-        
+        cd PhonebookValidator
+        mvn clean test jacoco:report
+      continue-on-error: false
+    
     - name: Upload coverage to Coveralls
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        file: ./**/target/site/jacoco/jacoco.xml
+        file: PhonebookValidator/target/site/jacoco/jacoco.xml
         format: jacoco
-        base-path: ./PhonebookValidator
-        
-    - name: Upload test reports (optional)
+        flag-name: jacoco
+        parallel: true
+    
+    - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-reports
-        path: |
-          **/target/surefire-reports/
-          **/target/site/jacoco/
+        path: PhonebookValidator/target/surefire-reports/
+    
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: PhonebookValidator/target/site/jacoco/
+
+  # Finalize Coveralls report
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Coveralls finished
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
